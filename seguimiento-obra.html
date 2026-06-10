@@ -1,0 +1,760 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Seguimiento de Obra · Reforma</title>
+<style>
+:root{
+  --bg:#F5F1EA;--card:#FFFFFF;--ink:#292524;--muted:#7A736B;
+  --line:#E8E1D6;--line-strong:#D8CFC0;
+  --amber:#B45309;--amber-bg:#FDF3DF;--amber-line:#EBD9B4;
+  --blue:#1D4ED8;--blue-bg:#E3ECFD;--blue-line:#C3D4F5;
+  --green:#15803D;--green-bg:#E2F5E6;--green-line:#BFE3C8;
+  --red:#B91C1C;--red-bg:#FBE9E9;
+  --radius:14px;
+  --shadow:0 1px 2px rgba(41,37,36,.05),0 10px 28px rgba(41,37,36,.07);
+  --font:"Avenir Next","Segoe UI Variable Text","Segoe UI",system-ui,-apple-system,Roboto,sans-serif;
+  /* Categorías */
+  --c-elec:#D97706;--c-elec-bg:#FEF3C7;--c-elec-ln:#FDE68A;
+  --c-alba:#92400E;--c-alba-bg:#FDE8D8;--c-alba-ln:#E8C9AF;
+  --c-font:#0369A1;--c-font-bg:#E0F2FE;--c-font-ln:#BAE6FD;
+  --c-clim:#0E7490;--c-clim-bg:#E0FAFE;--c-clim-ln:#A5F3FC;
+  --c-pint:#7C3AED;--c-pint-bg:#EDE9FE;--c-pint-ln:#DDD6FE;
+  --c-carp:#C2410C;--c-carp-bg:#FFF7ED;--c-carp-ln:#FED7AA;
+  --c-domo:#0F766E;--c-domo-bg:#E6FFFA;--c-domo-ln:#99F6E4;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:var(--font);background:var(--bg);color:var(--ink);line-height:1.5;-webkit-font-smoothing:antialiased}
+button{font-family:inherit;cursor:pointer}
+textarea,select,input{font-family:inherit;font-size:14px;color:var(--ink)}
+
+/* Login */
+#login-screen{position:fixed;inset:0;z-index:999;background:var(--bg);display:flex;align-items:center;justify-content:center}
+.login-card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);padding:42px 36px;width:min(380px,90vw);text-align:center}
+.login-card .icon{font-size:44px;margin-bottom:6px}
+.login-card h2{font-size:22px;font-weight:700;letter-spacing:-.02em;margin-bottom:4px}
+.login-card .sub{font-size:13px;color:var(--muted);margin-bottom:24px}
+.pin-input{width:100%;text-align:center;font-size:28px;font-weight:700;letter-spacing:.25em;border:2px solid var(--line-strong);border-radius:10px;padding:14px;background:#FCFAF6;-moz-appearance:textfield}
+.pin-input::-webkit-outer-spin-button,.pin-input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
+.pin-input:focus{outline:none;border-color:var(--blue)}
+.login-error{font-size:13px;color:var(--red);font-weight:600;margin-top:12px;min-height:20px}
+.login-hint{font-size:12px;color:var(--muted);margin-top:18px;border-top:1px dashed var(--line);padding-top:14px}
+
+/* Header */
+header{background:var(--card);border-bottom:1px solid var(--line);padding:22px clamp(16px,4vw,40px) 0}
+.head-top{display:flex;flex-wrap:wrap;gap:14px;align-items:flex-end;justify-content:space-between;max-width:1100px;margin:0 auto}
+.brand .eyebrow{font-size:11px;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:var(--muted)}
+.brand h1{font-size:clamp(22px,3.4vw,30px);font-weight:700;letter-spacing:-.02em}
+.head-actions{display:flex;gap:8px;padding-bottom:4px;align-items:center;flex-wrap:wrap}
+.role-chip{font-size:11px;font-weight:700;letter-spacing:.06em;border-radius:20px;padding:4px 12px}
+.role-chip.admin{background:var(--blue-bg);color:var(--blue);border:1px solid var(--blue-line)}
+.role-chip.public{background:var(--amber-bg);color:var(--amber);border:1px solid var(--amber-line)}
+.btn{border:1px solid var(--line-strong);background:var(--card);color:var(--ink);border-radius:9px;padding:8px 14px;font-size:13px;font-weight:600;transition:background .15s,border-color .15s}
+.btn:hover{background:#FAF7F1}
+.btn:focus-visible,.tab:focus-visible,.seg button:focus-visible,.obs-toggle:focus-visible,select:focus-visible,input:focus-visible,textarea:focus-visible{outline:2px solid var(--blue);outline-offset:2px}
+.btn.danger{color:var(--red);border-color:#E7C4C4}.btn.danger:hover{background:var(--red-bg)}
+.btn.primary{background:var(--blue);color:#FFF;border-color:var(--blue)}.btn.primary:hover{background:#1740B0}
+
+/* Tabs */
+nav{max-width:1100px;margin:18px auto 0;display:flex;gap:4px;overflow-x:auto;scrollbar-width:none}
+nav::-webkit-scrollbar{display:none}
+.tab{background:none;border:none;border-bottom:3px solid transparent;padding:10px 14px 12px;font-size:14px;font-weight:600;color:var(--muted);white-space:nowrap}
+.tab:hover{color:var(--ink)}.tab.active{color:var(--ink);border-bottom-color:var(--ink)}
+.tab .count{font-size:11px;font-weight:700;color:var(--muted);background:var(--bg);border-radius:20px;padding:1px 7px;margin-left:5px}
+
+/* Main */
+main{max-width:1100px;margin:0 auto;padding:26px clamp(14px,4vw,40px) 70px}
+.view{display:none}.view.active{display:block;animation:fade .25s ease}
+@keyframes fade{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+@media(prefers-reduced-motion:reduce){.view.active{animation:none}html{scroll-behavior:auto}}
+
+/* Dashboard */
+.stats{display:grid;gap:14px;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));margin-bottom:22px}
+.stat{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);padding:16px 18px}
+.stat .label{font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.stat .value{font-size:30px;font-weight:700;letter-spacing:-.02em;margin-top:2px}
+.stat.s-pend .value{color:var(--amber)}.stat.s-proc .value{color:var(--blue)}.stat.s-fin .value{color:var(--green)}
+.progress-card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);padding:20px 22px;margin-bottom:22px}
+.progress-head{display:flex;justify-content:space-between;align-items:baseline;flex-wrap:wrap;gap:6px}
+.progress-head .pct{font-size:34px;font-weight:700;letter-spacing:-.03em;color:var(--green)}
+.tape{position:relative;height:26px;margin-top:12px;background:repeating-linear-gradient(to right,var(--line) 0 1px,transparent 1px 10%),#F1ECE2;border:1px solid var(--line);border-radius:8px;overflow:hidden}
+.tape-fill{position:absolute;inset:0 auto 0 0;width:0%;background:linear-gradient(180deg,#22A04A,#15803D);transition:width .5s ease}
+.tape-ticks{position:absolute;inset:0;display:flex;justify-content:space-between;align-items:flex-end;padding:0 2px;pointer-events:none}
+.tape-ticks span{width:1px;height:8px;background:rgba(41,37,36,.25)}
+.grid-2{display:grid;gap:18px;grid-template-columns:1fr 1fr}
+.grid-3{display:grid;gap:14px;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));margin-bottom:22px}
+@media(max-width:760px){.grid-2{grid-template-columns:1fr}}
+.panel{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);padding:18px 20px;margin-bottom:18px}
+.panel h3{font-size:15px;font-weight:700;letter-spacing:-.01em;margin-bottom:12px}
+.building{display:flex;flex-direction:column;gap:0;border:1px solid var(--line-strong);border-radius:10px;overflow:hidden}
+.floor-row{display:grid;grid-template-columns:130px 1fr 52px;align-items:center;gap:12px;padding:13px 14px;background:#FCFAF6;border-bottom:1px dashed var(--line-strong);border-left:5px solid var(--line-strong);text-align:left;width:100%;border-top:0;border-right:0;font:inherit;color:inherit;cursor:pointer;transition:background .15s}
+.floor-row:last-child{border-bottom:none}.floor-row:hover{background:#F6F1E7}
+.floor-row .fname{font-size:13px;font-weight:700}.floor-row .fsub{font-size:11px;color:var(--muted)}
+.minibar{height:8px;background:#EDE7DB;border-radius:6px;overflow:hidden}
+.minibar i{display:block;height:100%;width:0%;background:var(--green);border-radius:6px;transition:width .4s ease}
+.floor-row .fpct{font-size:13px;font-weight:700;text-align:right;color:var(--green)}
+.recent-list{list-style:none}
+.recent-list li{display:flex;justify-content:space-between;gap:10px;padding:9px 0;border-bottom:1px dashed var(--line);font-size:13px}
+.recent-list li:last-child{border-bottom:none}
+.recent-list .where{color:var(--muted);font-size:12px}
+.recent-list .date{color:var(--green);font-weight:600;white-space:nowrap}
+.empty{color:var(--muted);font-size:13px;padding:6px 0}
+
+/* Category bars */
+.cat-row{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px dashed var(--line);font-size:13px}
+.cat-row:last-child{border-bottom:none}
+.cat-icon{width:22px;text-align:center;font-size:14px;flex-shrink:0}
+.cat-label{flex:1;font-weight:600}
+.cat-bar{width:90px;height:7px;background:#EDE7DB;border-radius:5px;overflow:hidden}
+.cat-bar i{display:block;height:100%;border-radius:5px;transition:width .4s ease}
+.cat-nums{font-size:12px;color:var(--muted);min-width:60px;text-align:right}
+
+/* Toolbar */
+.toolbar{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:18px}
+.toolbar input[type="search"]{flex:1;min-width:180px;border:1px solid var(--line-strong);border-radius:9px;padding:9px 12px;background:var(--card)}
+.toolbar select{border:1px solid var(--line-strong);border-radius:9px;padding:9px 12px;background:var(--card)}
+
+/* Tasks */
+.room{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);margin-bottom:18px;overflow:hidden}
+.room-head{display:flex;align-items:center;gap:14px;flex-wrap:wrap;padding:14px 18px;border-bottom:1px solid var(--line);background:#FCFAF6}
+.room-head h3{font-size:15px;font-weight:700;letter-spacing:-.01em}
+.room-head .meta{font-size:12px;color:var(--muted);font-weight:600}
+.room-head .minibar{flex:1;min-width:90px;max-width:180px;margin-left:auto}
+.task{padding:13px 18px;border-bottom:1px solid var(--line)}.task:last-child{border-bottom:none}
+.task-main{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.dot{width:9px;height:9px;border-radius:50%;flex-shrink:0}
+.task[data-estado="pendiente"] .dot{background:var(--amber)}
+.task[data-estado="proceso"] .dot{background:var(--blue)}
+.task[data-estado="finalizada"] .dot{background:var(--green)}
+.task-name{flex:1;min-width:160px;font-size:14px}
+.task[data-estado="finalizada"] .task-name{color:var(--muted);text-decoration:line-through;text-decoration-color:var(--line-strong)}
+.date-chip{font-size:11.5px;font-weight:700;color:var(--green);background:var(--green-bg);border:1px solid var(--green-line);border-radius:20px;padding:2px 9px;white-space:nowrap}
+
+/* Category badge */
+.cat-badge{font-size:10px;font-weight:700;letter-spacing:.03em;border-radius:6px;padding:2px 7px;white-space:nowrap;flex-shrink:0}
+.cat-badge.elec{background:var(--c-elec-bg);color:var(--c-elec);border:1px solid var(--c-elec-ln)}
+.cat-badge.alba{background:var(--c-alba-bg);color:var(--c-alba);border:1px solid var(--c-alba-ln)}
+.cat-badge.font{background:var(--c-font-bg);color:var(--c-font);border:1px solid var(--c-font-ln)}
+.cat-badge.clim{background:var(--c-clim-bg);color:var(--c-clim);border:1px solid var(--c-clim-ln)}
+.cat-badge.pint{background:var(--c-pint-bg);color:var(--c-pint);border:1px solid var(--c-pint-ln)}
+.cat-badge.carp{background:var(--c-carp-bg);color:var(--c-carp);border:1px solid var(--c-carp-ln)}
+.cat-badge.domo{background:var(--c-domo-bg);color:var(--c-domo);border:1px solid var(--c-domo-ln)}
+
+.seg{display:flex;border:1px solid var(--line-strong);border-radius:9px;overflow:hidden}
+.seg button{border:none;background:var(--card);padding:6px 11px;font-size:12px;font-weight:600;color:var(--muted);border-right:1px solid var(--line);transition:background .15s,color .15s}
+.seg button:last-child{border-right:none}.seg button:hover{background:#FAF7F1}
+.seg button.on-pendiente{background:var(--amber-bg);color:var(--amber)}
+.seg button.on-proceso{background:var(--blue-bg);color:var(--blue)}
+.seg button.on-finalizada{background:var(--green-bg);color:var(--green)}
+.obs-toggle{border:none;background:none;color:var(--muted);font-size:12px;font-weight:600;text-decoration:underline;text-underline-offset:3px;padding:4px}
+.obs-toggle.has-obs{color:var(--blue)}
+.obs-box{display:none;margin-top:10px;padding-left:21px}.obs-box.open{display:block}
+.obs-box textarea{width:100%;min-height:64px;resize:vertical;border:1px solid var(--line-strong);border-radius:9px;padding:9px 11px;background:#FCFAF6}
+.obs-actions{display:flex;align-items:center;gap:10px;margin-top:7px}
+.obs-saved{font-size:12px;color:var(--green);font-weight:600;opacity:0;transition:opacity .3s}.obs-saved.show{opacity:1}
+.task-del{border:none;background:none;color:var(--line-strong);font-size:17px;line-height:1;padding:4px 6px;border-radius:6px;transition:color .15s,background .15s;flex-shrink:0}
+.task-del:hover{color:var(--red);background:var(--red-bg)}
+.add-task-form{display:flex;gap:8px;align-items:center;flex-wrap:wrap;padding:12px 18px;background:#FDFBF7;border-top:1px dashed var(--line)}
+.add-task-form input[type="text"]{flex:1;min-width:160px;border:1px solid var(--line-strong);border-radius:9px;padding:8px 12px;background:var(--card)}
+.add-task-form select{border:1px solid var(--line-strong);border-radius:9px;padding:8px 10px;background:var(--card);font-size:13px}
+.add-room-btn{display:flex;align-items:center;gap:6px;margin-bottom:18px;border:2px dashed var(--line-strong);border-radius:var(--radius);padding:14px 18px;background:transparent;color:var(--muted);font-size:14px;font-weight:600;width:100%;transition:border-color .15s,color .15s}
+.add-room-btn:hover{border-color:var(--blue);color:var(--blue)}
+.modal-overlay{position:fixed;inset:0;z-index:900;background:rgba(41,37,36,.35);display:flex;align-items:center;justify-content:center;animation:fade .2s ease}
+.modal{background:var(--card);border-radius:var(--radius);box-shadow:0 20px 60px rgba(0,0,0,.18);padding:28px 28px 22px;width:min(420px,90vw)}
+.modal h3{font-size:17px;font-weight:700;margin-bottom:16px}
+.modal label{display:block;font-size:13px;font-weight:600;color:var(--muted);margin-bottom:4px;margin-top:12px}
+.modal input,.modal select{width:100%;border:1px solid var(--line-strong);border-radius:9px;padding:10px 12px;background:#FCFAF6}
+.modal-actions{display:flex;gap:10px;justify-content:flex-end;margin-top:20px}
+
+/* Histórico */
+.hist-table{width:100%;border-collapse:collapse;font-size:13.5px}
+.hist-table th{text-align:left;font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);padding:8px 10px;border-bottom:2px solid var(--line-strong)}
+.hist-table td{padding:10px;border-bottom:1px solid var(--line);vertical-align:top}
+.hist-table .fdate{font-weight:700;color:var(--green);white-space:nowrap}
+.log-list{list-style:none;font-size:13px}
+.log-list li{padding:8px 0;border-bottom:1px dashed var(--line);display:flex;gap:10px;flex-wrap:wrap}
+.log-list .when{color:var(--muted);white-space:nowrap;min-width:130px}
+.badge{font-size:11px;font-weight:700;border-radius:20px;padding:1px 8px}
+.badge.pendiente{background:var(--amber-bg);color:var(--amber)}
+.badge.proceso{background:var(--blue-bg);color:var(--blue)}
+.badge.finalizada{background:var(--green-bg);color:var(--green)}
+
+body.public .admin-only{display:none!important}
+@media(max-width:640px){.task-main{align-items:flex-start}.seg{order:4}.floor-row{grid-template-columns:100px 1fr 46px}.hist-table th:nth-child(2),.hist-table td:nth-child(2){display:none}}
+</style>
+</head>
+<body>
+<div id="login-screen">
+  <div class="login-card">
+    <div class="icon">🏗️</div>
+    <h2>Seguimiento de Obra</h2>
+    <div class="sub">Introduce el código de acceso</div>
+    <input type="password" inputmode="numeric" class="pin-input" id="pin-input" maxlength="4" autocomplete="off" autofocus placeholder="····">
+    <div class="login-error" id="login-error"></div>
+    <div class="login-hint">Acceso restringido al equipo de obra</div>
+  </div>
+</div>
+<div id="app-shell" style="display:none">
+<header>
+  <div class="head-top">
+    <div class="brand"><div class="eyebrow">Reforma · Panel de control</div><h1>Seguimiento de Obra</h1></div>
+    <div class="head-actions">
+      <span class="role-chip" id="role-chip"></span>
+      <button class="btn" id="btn-export">Exportar</button>
+      <button class="btn danger admin-only" id="btn-reset">Restablecer</button>
+      <button class="btn" id="btn-logout">Salir</button>
+    </div>
+  </div>
+  <nav id="tabs"></nav>
+</header>
+<main>
+  <section class="view" id="view-resumen">
+    <div class="stats">
+      <div class="stat"><div class="label">Total tareas</div><div class="value" id="st-total">0</div></div>
+      <div class="stat s-pend"><div class="label">Pendientes</div><div class="value" id="st-pend">0</div></div>
+      <div class="stat s-proc"><div class="label">En proceso</div><div class="value" id="st-proc">0</div></div>
+      <div class="stat s-fin"><div class="label">Finalizadas</div><div class="value" id="st-fin">0</div></div>
+    </div>
+    <div class="progress-card">
+      <div class="progress-head"><h3>Avance general</h3><div class="pct" id="st-pct">0%</div></div>
+      <div class="tape"><div class="tape-fill" id="tape-fill"></div><div class="tape-ticks" id="tape-ticks"></div></div>
+    </div>
+    <div class="grid-2">
+      <div>
+        <div class="panel"><h3>Avance por planta</h3><div class="building" id="building"></div></div>
+        <div class="panel"><h3>Avance por categoría</h3><div id="cat-summary"></div></div>
+      </div>
+      <div class="panel"><h3>Últimas tareas finalizadas</h3><ul class="recent-list" id="recent-list"></ul></div>
+    </div>
+  </section>
+  <section class="view" id="view-p0"></section>
+  <section class="view" id="view-p1"></section>
+  <section class="view" id="view-p2"></section>
+  <section class="view" id="view-historico">
+    <div class="toolbar">
+      <select id="hist-planta"><option value="todas">Todas las plantas</option></select>
+      <select id="hist-cat"><option value="todas">Todas las categorías</option></select>
+    </div>
+    <div class="panel">
+      <h3>Tareas finalizadas</h3>
+      <div style="overflow-x:auto"><table class="hist-table"><thead><tr><th>Fecha</th><th>Planta</th><th>Estancia</th><th>Tarea</th><th>Categoría</th></tr></thead><tbody id="hist-body"></tbody></table></div>
+      <div class="empty" id="hist-empty" style="display:none">Todavía no hay tareas finalizadas.</div>
+    </div>
+    <div class="panel"><h3>Registro de actividad</h3><ul class="log-list" id="log-list"></ul><div class="empty" id="log-empty" style="display:none">Sin actividad registrada.</div></div>
+  </section>
+</main>
+</div>
+<script>
+/* ============================================================
+   CATEGORÍAS DE TRABAJO
+   ============================================================ */
+const CATS={
+  elec:{key:"elec",nombre:"Electricidad",icon:"⚡",color:"var(--c-elec)"},
+  alba:{key:"alba",nombre:"Albañilería",icon:"🧱",color:"var(--c-alba)"},
+  font:{key:"font",nombre:"Fontanería",icon:"🔧",color:"var(--c-font)"},
+  clim:{key:"clim",nombre:"Climatización",icon:"❄️",color:"var(--c-clim)"},
+  pint:{key:"pint",nombre:"Pintura y acabados",icon:"🎨",color:"var(--c-pint)"},
+  carp:{key:"carp",nombre:"Carpintería",icon:"🚪",color:"var(--c-carp)"},
+  domo:{key:"domo",nombre:"Domótica",icon:"📡",color:"var(--c-domo)"}
+};
+const CAT_KEYS=Object.keys(CATS);
+
+/* t(nombre, categoría) — atajo para definir tareas */
+function T(n,c){return{n,c}}
+
+/* ============================================================
+   ESTRUCTURA DE LA OBRA — cada tarea lleva su categoría
+   ============================================================ */
+const ESTRUCTURA=[
+  {planta:"Planta Baja",estancias:[
+    {nombre:"Entrada",tareas:[
+      T("Luces del rellano de entrada","elec"),
+      T("Instalar motor domotizado en persiana","domo"),
+      T("Pintar persiana","pint"),
+      T("Pintar puerta de entrada","pint"),
+      T("Conectar puerta de entrada con telefonillo que se compre","domo"),
+      T("Instalar telefonillos","domo"),
+      T("Iluminación entrada y zona actual despensa","elec"),
+      T("Instalar punto de agua en entrada o rellano","font"),
+      T("Tirar muro de despensa para dejarlo diáfano","alba"),
+      T("Rematar y dejar terminado el muro de las escaleras","alba"),
+      T("Revisar acabado de paredes (quitar gotelé o poner tablero)","pint"),
+      T("Mirar si en toda la entrada, muro, escaleras hasta primera planta se quita gotelé, se recubre de tablero...","pint"),
+      T("Tapiar puerta de acceso a fábrica","alba"),
+      T("Tapar hueco superior de puerta de entrada del rellano (hueco inutilizable donde actualmente hay una ventana)","alba"),
+      T("Instalar iluminación en escaleras","elec"),
+      T("Instalar tira LED perimetral en muro","elec"),
+      T("Tapar hueco de puerta en primera planta","alba")
+    ]}
+  ]},
+  {planta:"Primera Planta",estancias:[
+    {nombre:"General",tareas:[
+      T("Colocación de suelo","alba"),
+      T("Instalación de aires acondicionados","clim"),
+      T("Terminación y preparación de paredes para pintura y/o colocación de tableros","pint"),
+      T("Tapado de agujeros","alba"),
+      T("Instalación de enchufes, interruptores y focos","elec"),
+      T("Instalación de barandillas de escalera","carp"),
+      T("Instalación de puertas","carp"),
+      T("Instalación de mosquiteras","carp"),
+      T("Instalación de rejas (si finalmente se colocan)","carp")
+    ]},
+    {nombre:"Habitación Álvaro",tareas:[
+      T("Tapar y rematar agujeros y paredes","alba"),
+      T("Instalar enchufes, interruptores y puntos de luz","elec"),
+      T("Terminar pared de balconeras","alba"),
+      T("Instalar aire acondicionado","clim")
+    ]},
+    {nombre:"Baño Invitados",tareas:[
+      T("Hacer techo","alba"),
+      T("Instalar enchufes e interruptores","elec"),
+      T("Instalar mampara","font"),
+      T("Instalar lavabo y váter","font"),
+      T("Revisar ubicación del interruptor (posible instalación interior)","elec")
+    ]},
+    {nombre:"Pasillo",tareas:[
+      T("Instalar enchufes, focos y tiras LED","elec"),
+      T("Tapar huecos y salidas de cables","alba")
+    ]},
+    {nombre:'Pasillo hacia "Estudio"',tareas:[
+      T("Finalizar completamente la zona","pint"),
+      T("Organizar cableado","elec"),
+      T("Terminar pared","alba"),
+      T("Cerrar huecos de techo","alba")
+    ]},
+    {nombre:"Estudio",tareas:[
+      T("Finalizar completamente la estancia","pint")
+    ]},
+    {nombre:"Salón / Cocina",tareas:[
+      T("Terminar paredes","alba"),
+      T("Tapar huecos","alba"),
+      T("Instalar tiras LED","elec"),
+      T("Instalar enchufes, focos e interruptores","elec"),
+      T("Dejar todo listo para que puedan montar la cocina","alba"),
+      T("Instalar aire acondicionado","clim")
+    ]},
+    {nombre:"Habitación",tareas:[
+      T("Instalar tiras LED","elec")
+    ]},
+    {nombre:"Baño Habitación",tareas:[
+      T("Instalar tiras LED","elec"),
+      T("Colocar tablero","pint"),
+      T("Instalar mampara, columna de ducha, lavabos, mueble, váter, bidé, bañera… Conjunto del baño","font"),
+      T("Terminar techo","alba"),
+      T("Revisar hueco sin azulejo junto a la puerta y finalizar acabado","pint")
+    ]}
+  ]},
+  {planta:"Planta Superior",estancias:[
+    {nombre:"General",tareas:[
+      T("Terminar muro de subida","alba"),
+      T("Finalizar techos","alba"),
+      T("Instalar enchufes en lavadero","elec"),
+      T("Instalar iluminación en sala grande y lavadero","elec"),
+      T("Reparar paredes con humedad en sala grande","alba"),
+      T("Revisar y finalizar techo de sala grande","alba"),
+      T("Dejar todas las superficies preparadas para pintura","pint"),
+      T("Tapar huecos en paredes de la subida de escalera","alba")
+    ]},
+    {nombre:"Posterior",tareas:[
+      T("Pintar todo el piso","pint"),
+      T("Colocación de muebles, tableros, armarios…","carp")
+    ]}
+  ]}
+];
+
+/* ============================================================
+   LOGIN
+   ============================================================ */
+const CODES={"1881":"admin","5":"public"};
+let userRole=null;
+const loginScreen=document.getElementById("login-screen");
+const appShell=document.getElementById("app-shell");
+const pinInput=document.getElementById("pin-input");
+const loginError=document.getElementById("login-error");
+pinInput.addEventListener("keydown",e=>{if(e.key==="Enter")tryLogin()});
+pinInput.addEventListener("input",()=>{loginError.textContent="";if(pinInput.value==="5")tryLogin()});
+function tryLogin(){
+  const code=pinInput.value.trim();
+  if(CODES[code]){
+    userRole=CODES[code];loginScreen.style.display="none";appShell.style.display="";
+    document.body.classList.toggle("public",userRole==="public");
+    document.getElementById("role-chip").textContent=userRole==="admin"?"Administrador":"Consulta";
+    document.getElementById("role-chip").className="role-chip "+(userRole==="admin"?"admin":"public");
+    initApp();
+  }else{loginError.textContent="Código incorrecto";pinInput.select()}
+}
+document.getElementById("btn-logout").addEventListener("click",()=>{
+  userRole=null;document.body.classList.remove("public");
+  appShell.style.display="none";loginScreen.style.display="";
+  pinInput.value="";loginError.textContent="";pinInput.focus();
+});
+
+/* ============================================================
+   ESTADO
+   ============================================================ */
+const STORAGE_KEY="seguimiento-obra-v3";
+const ESTADOS=["pendiente","proceso","finalizada"];
+const ETIQUETA={pendiente:"Pendiente",proceso:"En proceso",finalizada:"Finalizada"};
+let state=null;
+let TAREAS=[];
+
+function buildTareas(){
+  TAREAS=[];
+  ESTRUCTURA.forEach((p,pi)=>{
+    p.estancias.forEach((e,ei)=>{
+      e.tareas.forEach((t,ti)=>{
+        TAREAS.push({id:`t-${pi}-${ei}-${ti}`,planta:p.planta,plantaIdx:pi,estancia:e.nombre,nombre:t.n,cat:t.c});
+      });
+    });
+  });
+  if(state&&state.custom)state.custom.forEach(c=>TAREAS.push(c));
+  if(state&&state.deleted){const del=new Set(state.deleted);TAREAS=TAREAS.filter(t=>!del.has(t.id))}
+}
+function estadoVacio(){return{tasks:{},log:[],custom:[],deleted:[],customRooms:[]}}
+function ensureTaskStates(){TAREAS.forEach(t=>{if(!state.tasks[t.id])state.tasks[t.id]={estado:"pendiente",fecha:null,ts:null,obs:""}})}
+function cargar(){
+  try{const raw=localStorage.getItem(STORAGE_KEY);if(!raw)return estadoVacio();const d=JSON.parse(raw);
+    return{tasks:d.tasks||{},log:d.log||[],custom:d.custom||[],deleted:d.deleted||[],customRooms:d.customRooms||[]}}
+  catch(e){return estadoVacio()}
+}
+function guardar(){localStorage.setItem(STORAGE_KEY,JSON.stringify(state))}
+
+/* ============================================================
+   UTILIDADES
+   ============================================================ */
+function hoyISO(){const d=new Date();return`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`}
+function fmtFecha(iso){if(!iso)return"";const[y,m,d]=iso.split("-");return`${d}/${m}/${y}`}
+function fmtFechaHora(ts){const d=new Date(ts);return d.toLocaleDateString("es-ES")+" "+d.toLocaleTimeString("es-ES",{hour:"2-digit",minute:"2-digit"})}
+function esc(s){return s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;")}
+let _cid=0;function nextCustomId(){return"c-"+Date.now()+"-"+(++_cid)}
+function getEstancias(pi){
+  const base=ESTRUCTURA[pi].estancias.map(e=>e.nombre);
+  const custom=(state.customRooms||[]).filter(r=>r.plantaIdx===pi).map(r=>r.nombre);
+  const all=[...base];custom.forEach(n=>{if(!all.includes(n))all.push(n)});return all;
+}
+function catBadge(c){const cat=CATS[c];return cat?`<span class="cat-badge ${c}">${cat.icon} ${cat.nombre}</span>`:""}
+function catOptions(selected){
+  return CAT_KEYS.map(k=>`<option value="${k}"${selected===k?" selected":""}>${CATS[k].icon} ${CATS[k].nombre}</option>`).join("");
+}
+
+/* ============================================================
+   NAVEGACIÓN
+   ============================================================ */
+const PESTANAS=[{id:"resumen",label:"Resumen"},{id:"p0",label:"Planta Baja"},{id:"p1",label:"Primera Planta"},{id:"p2",label:"Planta Superior"},{id:"historico",label:"Histórico"}];
+let pestanaActiva="resumen";
+const filtros={q:"",estado:"todas",cat:"todas"};
+
+function renderTabs(){
+  const nav=document.getElementById("tabs");
+  nav.innerHTML=PESTANAS.map(p=>{
+    let extra="";
+    if(p.id.startsWith("p")){
+      const pi=Number(p.id.slice(1));
+      const pend=TAREAS.filter(t=>t.plantaIdx===pi&&state.tasks[t.id]&&state.tasks[t.id].estado!=="finalizada").length;
+      extra=`<span class="count">${pend}</span>`;
+    }
+    return`<button class="tab ${pestanaActiva===p.id?"active":""}" data-tab="${p.id}">${p.label}${extra}</button>`;
+  }).join("");
+  nav.querySelectorAll(".tab").forEach(b=>b.addEventListener("click",()=>{
+    pestanaActiva=b.dataset.tab;
+    document.querySelectorAll(".view").forEach(v=>v.classList.remove("active"));
+    document.getElementById("view-"+pestanaActiva).classList.add("active");
+    renderTabs();
+  }));
+}
+
+/* ============================================================
+   DASHBOARD
+   ============================================================ */
+function renderDashboard(){
+  const total=TAREAS.length;
+  const n={pendiente:0,proceso:0,finalizada:0};
+  TAREAS.forEach(t=>{if(state.tasks[t.id])n[state.tasks[t.id].estado]++});
+  const pct=total?Math.round(n.finalizada/total*100):0;
+  document.getElementById("st-total").textContent=total;
+  document.getElementById("st-pend").textContent=n.pendiente;
+  document.getElementById("st-proc").textContent=n.proceso;
+  document.getElementById("st-fin").textContent=n.finalizada;
+  document.getElementById("st-pct").textContent=pct+"%";
+  document.getElementById("tape-fill").style.width=pct+"%";
+  const ticks=document.getElementById("tape-ticks");
+  if(!ticks.children.length)ticks.innerHTML=Array.from({length:11},()=>"<span></span>").join("");
+
+  /* Edificio */
+  document.getElementById("building").innerHTML=[2,1,0].map(pi=>{
+    const ts=TAREAS.filter(t=>t.plantaIdx===pi);
+    const fin=ts.filter(t=>state.tasks[t.id]&&state.tasks[t.id].estado==="finalizada").length;
+    const fpct=ts.length?Math.round(fin/ts.length*100):0;
+    return`<button class="floor-row" data-floor="p${pi}"><span><span class="fname">${ESTRUCTURA[pi].planta}</span><br><span class="fsub">${fin} de ${ts.length}</span></span><span class="minibar"><i style="width:${fpct}%"></i></span><span class="fpct">${fpct}%</span></button>`;
+  }).join("");
+  document.getElementById("building").querySelectorAll(".floor-row").forEach(b=>b.addEventListener("click",()=>{
+    document.querySelector(`.tab[data-tab="${b.dataset.floor}"]`).click();
+  }));
+
+  /* Resumen por categoría */
+  document.getElementById("cat-summary").innerHTML=CAT_KEYS.map(k=>{
+    const cat=CATS[k];
+    const ts=TAREAS.filter(t=>t.cat===k);
+    if(!ts.length)return"";
+    const fin=ts.filter(t=>state.tasks[t.id]&&state.tasks[t.id].estado==="finalizada").length;
+    const cpct=Math.round(fin/ts.length*100);
+    return`<div class="cat-row">
+      <span class="cat-icon">${cat.icon}</span>
+      <span class="cat-label">${cat.nombre}</span>
+      <span class="cat-bar"><i style="width:${cpct}%;background:${cat.color}"></i></span>
+      <span class="cat-nums">${fin}/${ts.length}</span>
+    </div>`;
+  }).join("");
+
+  /* Recientes */
+  const recientes=TAREAS.filter(t=>state.tasks[t.id]&&state.tasks[t.id].estado==="finalizada")
+    .sort((a,b)=>(state.tasks[b.id].ts||0)-(state.tasks[a.id].ts||0)).slice(0,6);
+  document.getElementById("recent-list").innerHTML=recientes.map(t=>
+    `<li><span>${esc(t.nombre)}<br><span class="where">${t.planta} · ${esc(t.estancia)}</span></span><span class="date">${fmtFecha(state.tasks[t.id].fecha)}</span></li>`
+  ).join("")||`<li class="empty">Aún no se ha finalizado ninguna tarea.</li>`;
+}
+
+/* ============================================================
+   VISTAS POR PLANTA
+   ============================================================ */
+function renderPlantas(){
+  ESTRUCTURA.forEach((p,pi)=>{
+    const view=document.getElementById("view-p"+pi);
+    const isAdmin=userRole==="admin";
+    const allEstancias=getEstancias(pi);
+
+    const toolbar=`<div class="toolbar">
+      <input type="search" placeholder="Buscar tarea…" value="${esc(filtros.q)}" data-role="buscar">
+      <select data-role="filtro-estado">
+        <option value="todas"${filtros.estado==="todas"?" selected":""}>Todos los estados</option>
+        <option value="pendiente"${filtros.estado==="pendiente"?" selected":""}>Pendientes</option>
+        <option value="proceso"${filtros.estado==="proceso"?" selected":""}>En proceso</option>
+        <option value="finalizada"${filtros.estado==="finalizada"?" selected":""}>Finalizadas</option>
+      </select>
+      <select data-role="filtro-cat">
+        <option value="todas"${filtros.cat==="todas"?" selected":""}>Todas las categorías</option>
+        ${CAT_KEYS.map(k=>`<option value="${k}"${filtros.cat===k?" selected":""}>${CATS[k].icon} ${CATS[k].nombre}</option>`).join("")}
+      </select>
+    </div>`;
+
+    const rooms=allEstancias.map(eName=>{
+      const tareasRoom=TAREAS.filter(t=>t.plantaIdx===pi&&t.estancia===eName);
+      const tareasVis=tareasRoom
+        .filter(t=>filtros.estado==="todas"||state.tasks[t.id].estado===filtros.estado)
+        .filter(t=>filtros.cat==="todas"||t.cat===filtros.cat)
+        .filter(t=>!filtros.q||t.nombre.toLowerCase().includes(filtros.q.toLowerCase()));
+      const fin=tareasRoom.filter(t=>state.tasks[t.id]&&state.tasks[t.id].estado==="finalizada").length;
+      const pctE=tareasRoom.length?Math.round(fin/tareasRoom.length*100):0;
+      if(!tareasVis.length&&(filtros.q||filtros.estado!=="todas"||filtros.cat!=="todas")&&!isAdmin)return"";
+
+      const filas=tareasVis.map(t=>{
+        const st=state.tasks[t.id];
+        const segBtns=ESTADOS.map(es=>
+          `<button data-action="estado" data-task-id="${t.id}" data-nuevo="${es}" class="${st.estado===es?"on-"+es:""}">${ETIQUETA[es]}</button>`
+        ).join("");
+        return`<div class="task" data-estado="${st.estado}">
+          <div class="task-main">
+            <span class="dot"></span>
+            ${catBadge(t.cat)}
+            <span class="task-name">${esc(t.nombre)}</span>
+            ${st.estado==="finalizada"&&st.fecha?`<span class="date-chip">✓ ${fmtFecha(st.fecha)}</span>`:""}
+            <span class="seg" role="group">${segBtns}</span>
+            <button class="obs-toggle ${st.obs?"has-obs":""}" data-action="toggle-obs" data-task-id="${t.id}">${st.obs?"Ver observaciones":"Añadir observación"}</button>
+            ${isAdmin?`<button class="task-del admin-only" data-action="delete-task" data-task-id="${t.id}" title="Eliminar tarea">✕</button>`:""}
+          </div>
+          <div class="obs-box" id="obs-${t.id}">
+            <textarea placeholder="Observaciones…" id="obs-text-${t.id}">${esc(st.obs)}</textarea>
+            <div class="obs-actions">
+              <button class="btn" data-action="save-obs" data-task-id="${t.id}">Guardar</button>
+              <span class="obs-saved" id="saved-${t.id}">Guardado ✓</span>
+            </div>
+          </div>
+        </div>`;
+      }).join("");
+
+      const safeRoom=eName.replace(/[^a-zA-Z0-9áéíóúñÁÉÍÓÚÑ]/g,"_");
+      const addForm=isAdmin?`<div class="add-task-form admin-only">
+        <input type="text" placeholder="Nueva tarea…" id="add-input-${pi}-${safeRoom}" data-action-key="add-${pi}|${eName}">
+        <select id="add-cat-${pi}-${safeRoom}">${catOptions("alba")}</select>
+        <button class="btn primary" data-action="add-task" data-pi="${pi}" data-room="${eName}" data-safe="${safeRoom}">Añadir</button>
+      </div>`:"";
+
+      const isCustomRoom=(state.customRooms||[]).some(r=>r.plantaIdx===pi&&r.nombre===eName);
+      const delRoomBtn=isAdmin&&isCustomRoom?`<button class="task-del admin-only" data-action="delete-room" data-pi="${pi}" data-room="${eName}" title="Eliminar estancia">✕</button>`:"";
+
+      return`<div class="room">
+        <div class="room-head"><h3>${esc(eName)}</h3>${delRoomBtn}<span class="meta">${fin}/${tareasRoom.length}</span><span class="minibar"><i style="width:${pctE}%"></i></span></div>
+        ${filas||(filtros.q||filtros.estado!=="todas"||filtros.cat!=="todas"?`<div class="task empty" style="padding:14px 18px">Sin tareas que coincidan.</div>`:"")}
+        ${addForm}
+      </div>`;
+    }).join("");
+
+    const addRoomBtn=isAdmin?`<button class="add-room-btn admin-only" data-action="new-room" data-pi="${pi}">＋ Añadir estancia a ${p.planta}</button>`:"";
+    view.innerHTML=toolbar+rooms+addRoomBtn;
+  });
+
+  /* Filtros */
+  document.querySelectorAll('[data-role="buscar"]').forEach(inp=>{
+    inp.addEventListener("input",()=>{const pos=inp.selectionStart;filtros.q=inp.value;renderPlantas();
+      const a=document.querySelector(".view.active [data-role='buscar']");if(a){a.focus();a.setSelectionRange(pos,pos)}});
+  });
+  document.querySelectorAll('[data-role="filtro-estado"]').forEach(s=>s.addEventListener("change",()=>{filtros.estado=s.value;renderPlantas()}));
+  document.querySelectorAll('[data-role="filtro-cat"]').forEach(s=>s.addEventListener("change",()=>{filtros.cat=s.value;renderPlantas()}));
+  document.querySelectorAll("[data-action-key]").forEach(inp=>{
+    inp.addEventListener("keydown",e=>{
+      if(e.key!=="Enter")return;
+      const parts=inp.dataset.actionKey.replace("add-","").split("|");
+      const pi=Number(parts[0]),room=parts[1];
+      const safeRoom=room.replace(/[^a-zA-Z0-9áéíóúñÁÉÍÓÚÑ]/g,"_");
+      const catSel=document.getElementById("add-cat-"+pi+"-"+safeRoom);
+      addTask(pi,room,inp.value.trim(),catSel?catSel.value:"alba");
+    });
+  });
+}
+
+/* ============================================================
+   DELEGACIÓN DE EVENTOS EN <main>
+   ============================================================ */
+document.querySelector("main").addEventListener("click",function(e){
+  const btn=e.target.closest("[data-action]");if(!btn)return;
+  const action=btn.dataset.action,taskId=btn.dataset.taskId;
+
+  switch(action){
+    case "estado":cambiarEstado(taskId,btn.dataset.nuevo);break;
+    case "toggle-obs":document.getElementById("obs-"+taskId).classList.toggle("open");break;
+    case "save-obs":{
+      const ta=document.getElementById("obs-text-"+taskId);
+      state.tasks[taskId].obs=ta.value.trim();guardar();
+      const chip=document.getElementById("saved-"+taskId);chip.classList.add("show");setTimeout(()=>chip.classList.remove("show"),1600);
+      const tog=document.querySelector(`[data-action="toggle-obs"][data-task-id="${taskId}"]`);
+      if(tog){tog.classList.toggle("has-obs",!!state.tasks[taskId].obs);tog.textContent=state.tasks[taskId].obs?"Ver observaciones":"Añadir observación"}
+      break;
+    }
+    case "delete-task":{
+      const t=TAREAS.find(x=>x.id===taskId);if(!t)return;
+      if(!confirm("¿Eliminar la tarea «"+t.nombre+"»?"))return;
+      state.deleted.push(taskId);state.custom=state.custom.filter(c=>c.id!==taskId);delete state.tasks[taskId];
+      state.log.unshift({ts:Date.now(),id:taskId,de:"-",a:"eliminada",tipo:"delete",nombre:t.nombre,estancia:t.estancia,planta:t.planta,cat:t.cat});
+      guardar();buildTareas();ensureTaskStates();renderAll();break;
+    }
+    case "add-task":{
+      const pi=Number(btn.dataset.pi),room=btn.dataset.room,safe=btn.dataset.safe;
+      const inp=document.getElementById("add-input-"+pi+"-"+safe);
+      const catSel=document.getElementById("add-cat-"+pi+"-"+safe);
+      if(inp)addTask(pi,room,inp.value.trim(),catSel?catSel.value:"alba");
+      break;
+    }
+    case "delete-room":{
+      const pi=Number(btn.dataset.pi),eName=btn.dataset.room;
+      const tr=TAREAS.filter(t=>t.plantaIdx===pi&&t.estancia===eName);
+      if(tr.length){if(!confirm('La estancia "'+eName+'" tiene '+tr.length+' tarea(s). Se eliminarán todas. ¿Continuar?'))return;
+        tr.forEach(t=>{state.deleted.push(t.id);state.custom=state.custom.filter(c=>c.id!==t.id);delete state.tasks[t.id]})}
+      else{if(!confirm('¿Eliminar la estancia "'+eName+'"?'))return}
+      state.customRooms=state.customRooms.filter(r=>!(r.plantaIdx===pi&&r.nombre===eName));
+      state.log.unshift({ts:Date.now(),id:"-",de:"-",a:"estancia eliminada",tipo:"delete-room",nombre:eName,planta:ESTRUCTURA[pi].planta});
+      guardar();buildTareas();ensureTaskStates();renderAll();break;
+    }
+    case "new-room":showNewRoomModal(Number(btn.dataset.pi));break;
+  }
+});
+
+function addTask(pi,room,nombre,cat){
+  if(!nombre)return;
+  const id=nextCustomId(),planta=ESTRUCTURA[pi].planta;
+  state.custom.push({id,plantaIdx:pi,planta,estancia:room,nombre,cat:cat||"alba"});
+  state.tasks[id]={estado:"pendiente",fecha:null,ts:null,obs:""};
+  state.log.unshift({ts:Date.now(),id,de:"-",a:"creada",tipo:"create",nombre,estancia:room,planta,cat});
+  guardar();buildTareas();ensureTaskStates();renderAll();
+}
+function cambiarEstado(id,nuevo){
+  const t=state.tasks[id];if(!t||t.estado===nuevo)return;
+  const anterior=t.estado;t.estado=nuevo;
+  if(nuevo==="finalizada"){t.fecha=hoyISO();t.ts=Date.now()}else{t.fecha=null;t.ts=null}
+  state.log.unshift({ts:Date.now(),id,de:anterior,a:nuevo,tipo:"status"});
+  if(state.log.length>300)state.log.length=300;
+  guardar();renderAll();
+}
+function showNewRoomModal(pi){
+  const existing=document.querySelector(".modal-overlay");if(existing)existing.remove();
+  const ov=document.createElement("div");ov.className="modal-overlay";
+  ov.innerHTML=`<div class="modal"><h3>Nueva estancia en ${ESTRUCTURA[pi].planta}</h3>
+    <label>Nombre</label><input type="text" id="new-room-name" placeholder="Ej: Terraza, Lavadero…">
+    <div class="modal-actions"><button class="btn" id="modal-cancel">Cancelar</button><button class="btn primary" id="modal-confirm">Crear</button></div></div>`;
+  document.body.appendChild(ov);
+  const inp=document.getElementById("new-room-name");inp.focus();
+  const close=()=>ov.remove();
+  document.getElementById("modal-cancel").addEventListener("click",close);
+  ov.addEventListener("click",e=>{if(e.target===ov)close()});
+  const doC=()=>{const name=inp.value.trim();if(!name){inp.focus();return}
+    if(getEstancias(pi).includes(name)){alert("Ya existe.");return}
+    state.customRooms.push({plantaIdx:pi,nombre:name});
+    state.log.unshift({ts:Date.now(),id:"-",de:"-",a:"estancia creada",tipo:"create-room",nombre:name,planta:ESTRUCTURA[pi].planta});
+    guardar();buildTareas();ensureTaskStates();renderAll();close()};
+  document.getElementById("modal-confirm").addEventListener("click",doC);
+  inp.addEventListener("keydown",e=>{if(e.key==="Enter")doC()});
+}
+
+/* ============================================================
+   HISTÓRICO
+   ============================================================ */
+function renderHistorico(){
+  const fp=document.getElementById("hist-planta").value;
+  const fc=document.getElementById("hist-cat").value;
+  const porId={};TAREAS.forEach(t=>porId[t.id]=t);
+
+  const finalizadas=TAREAS.filter(t=>state.tasks[t.id]&&state.tasks[t.id].estado==="finalizada")
+    .filter(t=>fp==="todas"||String(t.plantaIdx)===fp)
+    .filter(t=>fc==="todas"||t.cat===fc)
+    .sort((a,b)=>(state.tasks[b.id].ts||0)-(state.tasks[a.id].ts||0));
+  document.getElementById("hist-body").innerHTML=finalizadas.map(t=>
+    `<tr><td class="fdate">${fmtFecha(state.tasks[t.id].fecha)}</td><td>${t.planta}</td><td>${esc(t.estancia)}</td><td>${esc(t.nombre)}</td><td>${catBadge(t.cat)}</td></tr>`
+  ).join("");
+  document.getElementById("hist-empty").style.display=finalizadas.length?"none":"block";
+
+  const log=state.log.filter(l=>{
+    if(fp!=="todas"){const t=porId[l.id];if(t&&String(t.plantaIdx)!==fp)return false;if(!t&&l.planta){const pi=ESTRUCTURA.findIndex(p=>p.planta===l.planta);if(String(pi)!==fp)return false}}
+    if(fc!=="todas"){const t=porId[l.id];if(t&&t.cat!==fc)return false;if(!t&&l.cat&&l.cat!==fc)return false}
+    return true;
+  });
+  document.getElementById("log-list").innerHTML=log.slice(0,80).map(l=>{
+    const t=porId[l.id];const nombre=t?esc(t.nombre):esc(l.nombre||"(eliminada)");
+    const ub=t?`${t.planta} · ${esc(t.estancia)}`:(l.planta?`${l.planta}${l.estancia?" · "+esc(l.estancia):""}`:"");
+    if(l.tipo==="create")return`<li><span class="when">${fmtFechaHora(l.ts)}</span><span style="flex:1">＋ ${nombre} <span style="color:var(--muted);font-size:12px">(${ub})</span></span><span class="badge proceso">Creada</span></li>`;
+    if(l.tipo==="delete")return`<li><span class="when">${fmtFechaHora(l.ts)}</span><span style="flex:1">✕ ${nombre} <span style="color:var(--muted);font-size:12px">(${ub})</span></span><span class="badge pendiente">Eliminada</span></li>`;
+    if(l.tipo==="create-room")return`<li><span class="when">${fmtFechaHora(l.ts)}</span><span style="flex:1">＋ Estancia: ${esc(l.nombre||"")} (${esc(l.planta||"")})</span><span class="badge proceso">Nueva</span></li>`;
+    if(l.tipo==="delete-room")return`<li><span class="when">${fmtFechaHora(l.ts)}</span><span style="flex:1">✕ Estancia: ${esc(l.nombre||"")} (${esc(l.planta||"")})</span><span class="badge pendiente">Eliminada</span></li>`;
+    return`<li><span class="when">${fmtFechaHora(l.ts)}</span><span style="flex:1">${nombre} <span style="color:var(--muted);font-size:12px">(${ub})</span></span><span><span class="badge ${l.de}">${ETIQUETA[l.de]||l.de}</span> → <span class="badge ${l.a}">${ETIQUETA[l.a]||l.a}</span></span></li>`;
+  }).join("");
+  document.getElementById("log-empty").style.display=log.length?"none":"block";
+}
+
+/* ============================================================
+   EXPORTAR / RESTABLECER / INIT
+   ============================================================ */
+document.getElementById("btn-export").addEventListener("click",()=>{
+  const data={exportado:new Date().toISOString(),categorias:CATS,tareas:TAREAS.map(t=>Object.assign({},t,state.tasks[t.id])),registro:state.log};
+  const blob=new Blob([JSON.stringify(data,null,2)],{type:"application/json"});
+  const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="seguimiento-obra-"+hoyISO()+".json";a.click();URL.revokeObjectURL(a.href);
+});
+document.getElementById("btn-reset").addEventListener("click",()=>{
+  if(!confirm("Esto borrará TODO el progreso.\n¿Seguro?"))return;
+  localStorage.removeItem(STORAGE_KEY);state=estadoVacio();buildTareas();ensureTaskStates();renderAll();
+});
+
+function renderAll(){renderTabs();renderDashboard();renderPlantas();renderHistorico()}
+function initApp(){
+  state=cargar();buildTareas();ensureTaskStates();
+  const sh=document.getElementById("hist-planta");while(sh.options.length>1)sh.remove(1);
+  ESTRUCTURA.forEach((p,pi)=>{const o=document.createElement("option");o.value=pi;o.textContent=p.planta;sh.appendChild(o)});
+  const sc=document.getElementById("hist-cat");while(sc.options.length>1)sc.remove(1);
+  CAT_KEYS.forEach(k=>{const o=document.createElement("option");o.value=k;o.textContent=CATS[k].icon+" "+CATS[k].nombre;sc.appendChild(o)});
+  sh.addEventListener("change",renderHistorico);
+  sc.addEventListener("change",renderHistorico);
+  renderAll();document.getElementById("view-resumen").classList.add("active");pestanaActiva="resumen";
+}
+pinInput.focus();
+</script>
+</body>
+</html>
